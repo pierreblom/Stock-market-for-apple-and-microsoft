@@ -188,7 +188,7 @@ class StockTrackerTester:
         self.print_header("DEMO DATA GENERATION TESTS")
         
         try:
-            from web_dashboard import FinnhubDataFetcher
+            from back_end.web_dashboard import FinnhubDataFetcher
             
             fetcher = FinnhubDataFetcher()
             

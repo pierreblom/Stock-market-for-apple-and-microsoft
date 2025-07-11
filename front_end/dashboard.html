@@ -1,0 +1,784 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>📈 Stock Market Tracker Pro</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/date-fns@2.29.3/index.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-date-fns@2.0.0/dist/chartjs-adapter-date-fns.bundle.min.js"></script>
+    
+    <style>
+        /* Modern Stock Dashboard CSS */
+        :root {
+            --primary-color: #2563eb;
+            --primary-hover: #1d4ed8;
+            --success-color: #10b981;
+            --warning-color: #f59e0b;
+            --danger-color: #ef4444;
+            --bg-primary: #f8fafc;
+            --bg-secondary: #ffffff;
+            --text-primary: #1e293b;
+            --text-secondary: #64748b;
+            --border-color: #e2e8f0;
+            --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
+            --shadow-md: 0 4px 6px -1px rgb(0 0 0 / 0.1);
+            --shadow-lg: 0 10px 15px -3px rgb(0 0 0 / 0.1);
+            --border-radius: 8px;
+            --font-size-xs: 0.75rem;
+            --font-size-sm: 0.875rem;
+            --font-size-base: 1rem;
+            --font-size-lg: 1.125rem;
+            --font-size-xl: 1.25rem;
+            --font-size-2xl: 1.5rem;
+            --font-size-3xl: 1.875rem;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            background-color: var(--bg-primary);
+            color: var(--text-primary);
+            line-height: 1.6;
+        }
+
+        .app-container {
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* Header */
+        .header {
+            background: var(--bg-secondary);
+            border-bottom: 1px solid var(--border-color);
+            box-shadow: var(--shadow-sm);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        .header-content {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 1rem 2rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .app-title {
+            font-size: var(--font-size-2xl);
+            font-weight: 700;
+            color: var(--text-primary);
+        }
+
+        .header-controls {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .status-indicator {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.5rem 1rem;
+            background: var(--success-color);
+            color: white;
+            border-radius: 2rem;
+            font-size: var(--font-size-sm);
+            font-weight: 500;
+        }
+
+        .status-dot {
+            width: 8px;
+            height: 8px;
+            background: white;
+            border-radius: 50%;
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+
+        /* Dashboard */
+        .dashboard {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 2rem;
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            gap: 2rem;
+        }
+
+        /* Stock Cards */
+        .stock-cards {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+            gap: 2rem;
+        }
+
+        .stock-card {
+            background: var(--bg-secondary);
+            border-radius: var(--border-radius);
+            box-shadow: var(--shadow-md);
+            padding: 2rem;
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+        }
+
+        .stock-card:hover {
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-lg);
+        }
+
+        .stock-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1rem;
+        }
+
+        .stock-symbol {
+            font-size: var(--font-size-2xl);
+            font-weight: 700;
+            color: var(--primary-color);
+        }
+
+        .stock-name {
+            font-size: var(--font-size-sm);
+            color: var(--text-secondary);
+            font-weight: 500;
+        }
+
+        .stock-price {
+            font-size: var(--font-size-3xl);
+            font-weight: 700;
+            margin-bottom: 0.5rem;
+        }
+
+        .stock-change {
+            font-size: var(--font-size-lg);
+            font-weight: 600;
+            margin-bottom: 1.5rem;
+        }
+
+        .stock-change.positive {
+            color: var(--success-color);
+        }
+
+        .stock-change.negative {
+            color: var(--danger-color);
+        }
+
+        .stock-details {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 1rem;
+            margin-bottom: 1rem;
+        }
+
+        .detail-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 0.75rem;
+            background: var(--bg-primary);
+            border-radius: var(--border-radius);
+        }
+
+        .detail-item .label {
+            font-size: var(--font-size-xs);
+            color: var(--text-secondary);
+            font-weight: 500;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+
+        .detail-item .value {
+            font-size: var(--font-size-lg);
+            font-weight: 600;
+            margin-top: 0.25rem;
+        }
+
+        .stock-updated {
+            font-size: var(--font-size-sm);
+            color: var(--text-secondary);
+            text-align: center;
+            font-style: italic;
+        }
+
+        /* Charts Section */
+        .charts-section {
+            display: flex;
+            flex-direction: column;
+            gap: 2rem;
+        }
+
+        .chart-container {
+            background: var(--bg-secondary);
+            border-radius: var(--border-radius);
+            box-shadow: var(--shadow-md);
+            padding: 2rem;
+        }
+
+        .chart-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1.5rem;
+            padding-bottom: 1rem;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .chart-header h3 {
+            font-size: var(--font-size-xl);
+            font-weight: 600;
+            color: var(--text-primary);
+        }
+
+        .chart-controls {
+            display: flex;
+            gap: 0.5rem;
+            background: var(--bg-primary);
+            padding: 0.5rem;
+            border-radius: var(--border-radius);
+        }
+
+        .time-range-btn {
+            padding: 0.5rem 1rem;
+            border: none;
+            background: transparent;
+            color: var(--text-secondary);
+            font-size: var(--font-size-sm);
+            font-weight: 500;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .time-range-btn:hover {
+            background: var(--border-color);
+            color: var(--text-primary);
+        }
+
+        .time-range-btn.active {
+            background: var(--primary-color);
+            color: white;
+            box-shadow: var(--shadow-sm);
+        }
+        
+        .main-chart {
+            height: 400px;
+        }
+
+        /* Advanced Section */
+        .advanced-section {
+            background: var(--bg-secondary);
+            padding: 2rem;
+            border-radius: var(--border-radius);
+            box-shadow: var(--shadow-md);
+        }
+
+        .advanced-header {
+            padding-bottom: 1rem;
+            border-bottom: 1px solid var(--border-color);
+            margin-bottom: 1.5rem;
+        }
+
+        .advanced-header h3 {
+            font-size: var(--font-size-xl);
+            font-weight: 600;
+        }
+
+        .advanced-controls {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            flex-wrap: wrap;
+        }
+
+        .symbol-selector-container,
+        .analytics-buttons {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .symbol-selector {
+            min-width: 200px;
+            padding: 0.5rem;
+            border: 1px solid var(--border-color);
+            border-radius: 6px;
+            font-size: var(--font-size-sm);
+        }
+
+        .btn {
+            padding: 0.6rem 1.2rem;
+            border: 1px solid var(--primary-color);
+            background: var(--primary-color);
+            color: white;
+            font-size: var(--font-size-sm);
+            font-weight: 500;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .btn:hover {
+            background: var(--primary-hover);
+            border-color: var(--primary-hover);
+        }
+
+        .btn-secondary {
+            background: var(--bg-secondary);
+            color: var(--primary-color);
+            border: 1px solid var(--border-color);
+        }
+
+        .btn-secondary:hover {
+            background: var(--bg-primary);
+        }
+
+        /* Comparison Chart */
+        .comparison-chart-container {
+            margin-top: 2rem;
+        }
+        
+        /* Loading & Error States */
+        .loading-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(255, 255, 255, 0.7);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 10;
+        }
+
+        .spinner {
+            width: 40px;
+            height: 40px;
+            border: 4px solid var(--border-color);
+            border-top-color: var(--primary-color);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        .error-message {
+            color: var(--danger-color);
+            background: #fee2e2;
+            padding: 1rem;
+            border-radius: var(--border-radius);
+            margin-bottom: 1rem;
+        }
+
+    </style>
+</head>
+<body>
+
+    <div class="app-container">
+        <!-- Header -->
+        <header class="header">
+            <div class="header-content">
+                <h1 class="app-title">📈 Stock Tracker</h1>
+                <div class="header-controls">
+                    <div id="status-indicator" class="status-indicator" style="display: none;">
+                        <div class="status-dot"></div>
+                        <span>API Connected</span>
+                    </div>
+                </div>
+            </div>
+        </header>
+
+        <!-- Dashboard -->
+        <main class="dashboard">
+            <!-- Main Stock Card -->
+            <section id="main-stock-card" class="stock-card">
+                <!-- Content generated by JS -->
+            </section>
+
+            <!-- Charts Section -->
+            <section class="charts-section">
+                <div class="chart-container">
+                    <div class="chart-header">
+                        <h3><span id="chart-icon"></span> Price History</h3>
+                        <div class="chart-controls">
+                            <button class="time-range-btn" data-period="today">Today</button>
+                            <button class="time-range-btn active" data-period="week">Last Week</button>
+                            <button class="time-range-btn" data-period="month">Last Month</button>
+                            <button class="time-range-btn" data-period="all">All</button>
+                        </div>
+                    </div>
+                    <div style="position: relative;">
+                        <canvas id="stock-chart" class="main-chart"></canvas>
+                        <div id="main-chart-loader" class="loading-overlay" style="display: none;"><div class="spinner"></div></div>
+                    </div>
+                </div>
+            </section>
+            
+            <!-- Advanced Analytics -->
+            <section class="advanced-section">
+                <div class="advanced-header">
+                    <h3>🔬 Advanced Analytics</h3>
+                </div>
+                <div class="advanced-controls">
+                    <div class="symbol-selector-container">
+                        <label for="symbol-selector">Compare with:</label>
+                        <select id="symbol-selector" class="symbol-selector" multiple>
+                            <option value="AAPL">Apple (AAPL)</option>
+                            <option value="MSFT">Microsoft (MSFT)</option>
+                            <option value="GOOGL">Google (GOOGL)</option>
+                            <option value="ASML.AS" selected>ASML (ASML.AS)</option>
+                            <option value="INGA.AS">ING Group (INGA.AS)</option>
+                            <option value="HEIA.AS">Heineken (HEIA.AS)</option>
+                            <option value="PHIA.AS">Philips (PHIA.AS)</option>
+                        </select>
+                    </div>
+                    <div class="analytics-buttons">
+                        <button id="run-comparison-btn" class="btn">Run Comparison</button>
+                        <button id="update-db-btn" class="btn btn-secondary">Update DB from Real-time</button>
+                    </div>
+                </div>
+
+                <div class="comparison-chart-container" id="comparison-chart-area" style="display: none;">
+                    <div class="chart-header">
+                        <h3>🆚 Stock Comparison</h3>
+                    </div>
+                    <div style="position: relative;">
+                        <canvas id="comparison-chart" height="150"></canvas>
+                        <div id="comparison-chart-loader" class="loading-overlay" style="display: none;"><div class="spinner"></div></div>
+                    </div>
+                </div>
+                 <div id="advanced-feedback" style="margin-top: 1rem;"></div>
+            </section>
+
+        </main>
+    </div>
+
+    <script>
+    document.addEventListener('DOMContentLoaded', () => {
+
+        // State management
+        let activeSymbol = 'AAPL'; // Default symbol
+        let activePeriod = 'week'; // Default period
+        let activeComparisonSymbols = ['AAPL', 'ASML.AS']; // Default comparison
+        let chart; // Global chart instance
+        let comparisonChart; // Comparison chart instance
+        const mainChartLoader = document.getElementById('main-chart-loader');
+        const comparisonChartLoader = document.getElementById('comparison-chart-loader');
+
+        // --- UI Elements ---
+        const mainStockCard = document.getElementById('main-stock-card');
+
+        // --- API Functions ---
+        const API_BASE = '/api';
+
+        async function fetchWithTimeout(url, options = {}, timeout = 10000) {
+            const controller = new AbortController();
+            const id = setTimeout(() => controller.abort(), timeout);
+            const response = await fetch(url, { ...options, signal: controller.signal });
+            clearTimeout(id);
+            return response;
+        }
+
+        async function fetchStockData(symbol, period = 'default') {
+            mainChartLoader.style.display = 'flex';
+            try {
+                const response = await fetchWithTimeout(`${API_BASE}/stock_data/${symbol}?period=${period}`);
+                if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+                const data = await response.json();
+                
+                if (data.success) {
+                    updateMainStockCard(data.symbol, data.current);
+                    updateChart(data.symbol, data.dates, data.prices, data.granularity);
+                } else {
+                    handleError('main-chart-feedback', `Could not load stock data: ${data.errors.join(', ')}`);
+                }
+            } catch (error) {
+                handleError('main-chart-feedback', `Network error or timeout: ${error.message}`);
+            } finally {
+                mainChartLoader.style.display = 'none';
+            }
+        }
+        
+        async function fetchComparisonData(symbols, period = 'week') {
+            document.getElementById('comparison-chart-area').style.display = 'block';
+            comparisonChartLoader.style.display = 'flex';
+            try {
+                const response = await fetchWithTimeout(`${API_BASE}/comparison_data?symbols=${symbols}&period=${period}`);
+                if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+                const result = await response.json();
+
+                if (result.success) {
+                    updateComparisonChart(result.data);
+                } else {
+                    handleError('advanced-feedback', `Could not load comparison data: ${result.errors.join(', ')}`);
+                }
+            } catch (error) {
+                handleError('advanced-feedback', `Network error or timeout: ${error.message}`);
+            } finally {
+                comparisonChartLoader.style.display = 'none';
+            }
+        }
+        
+        async function fetchServerStatus() {
+            try {
+                const response = await fetchWithTimeout(`${API_BASE}/health`);
+                if (response.ok) {
+                    document.getElementById('status-indicator').style.display = 'flex';
+                }
+            } catch (error) {
+                console.warn('API health check failed.');
+            }
+        }
+
+        // --- UI Update Functions ---
+        function updateMainStockCard(symbol, currentData) {
+            if (!currentData) {
+                mainStockCard.innerHTML = `<div class="error-message">Could not retrieve current data for ${symbol}.</div>`;
+                return;
+            }
+            
+            const changeClass = currentData.change >= 0 ? 'positive' : 'negative';
+            const changeSign = currentData.change >= 0 ? '+' : '';
+            const formattedDate = new Date(currentData.timestamp).toLocaleString();
+            
+            mainStockCard.innerHTML = `
+                <div class="stock-header">
+                    <div>
+                        <div class="stock-symbol">${symbol}</div>
+                        <div class="stock-name">Apple Inc.</div> <!-- This could be dynamic -->
+                    </div>
+                </div>
+                <div class="stock-price">$${currentData.price.toFixed(2)}</div>
+                <div class="stock-change ${changeClass}">
+                    ${changeSign}${currentData.change.toFixed(2)} (${changeSign}${currentData.change_percent.toFixed(2)}%)
+                </div>
+                <div class="stock-details">
+                    <div class="detail-item"><span class="label">Open</span><span class="value">$${currentData.open.toFixed(2)}</span></div>
+                    <div class="detail-item"><span class="label">High</span><span class="value">$${currentData.high.toFixed(2)}</span></div>
+                    <div class="detail-item"><span class="label">Low</span><span class="value">$${currentData.low.toFixed(2)}</span></div>
+                </div>
+                <div class="stock-updated">Last updated: ${formattedDate}</div>
+            `;
+        }
+
+        function updateChart(symbol, dates, prices, granularity) {
+            const ctx = document.getElementById('stock-chart').getContext('2d');
+            
+            const timeUnit = granularity === 'hourly' ? 'hour' : 'day';
+
+            if (chart) {
+                chart.destroy();
+            }
+
+            chart = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: dates,
+                    datasets: [{
+                        label: `${symbol} Price`,
+                        data: prices,
+                        borderColor: 'rgba(37, 99, 235, 1)',
+                        backgroundColor: 'rgba(37, 99, 235, 0.1)',
+                        borderWidth: 2,
+                        pointRadius: 0,
+                        tension: 0.1,
+                        fill: true
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        x: {
+                            type: 'time',
+                            time: {
+                                unit: timeUnit,
+                                tooltipFormat: 'MMM dd, yyyy HH:mm',
+                                displayFormats: {
+                                    hour: 'HH:mm',
+                                    day: 'MMM dd'
+                                }
+                            },
+                            grid: {
+                                display: false
+                            },
+                            ticks: {
+                                color: 'rgba(100, 116, 139, 1)'
+                            }
+                        },
+                        y: {
+                            beginAtZero: false,
+                            grid: {
+                                color: 'rgba(226, 232, 240, 1)'
+                            },
+                            ticks: {
+                                color: 'rgba(100, 116, 139, 1)',
+                                callback: function(value, index, values) {
+                                    return '$' + value.toFixed(2);
+                                }
+                            }
+                        }
+                    },
+                    plugins: {
+                        legend: {
+                            display: false
+                        },
+                        tooltip: {
+                            mode: 'index',
+                            intersect: false,
+                            callbacks: {
+                                label: function(context) {
+                                    return `Price: $${context.parsed.y.toFixed(2)}`;
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+        }
+        
+        function updateComparisonChart(data) {
+            const ctx = document.getElementById('comparison-chart').getContext('2d');
+            
+            const datasets = Object.keys(data).map((symbol, index) => {
+                const colors = [
+                    'rgba(59, 130, 246, 1)', 
+                    'rgba(16, 185, 129, 1)', 
+                    'rgba(249, 115, 22, 1)', 
+                    'rgba(139, 92, 246, 1)'
+                ];
+                const color = colors[index % colors.length];
+                
+                return {
+                    label: symbol,
+                    data: data[symbol].prices,
+                    borderColor: color,
+                    backgroundColor: color.replace('1)', '0.1)'),
+                    borderWidth: 2,
+                    pointRadius: 0,
+                    tension: 0.1,
+                    fill: false
+                };
+            });
+
+            const labels = data[Object.keys(data)[0]].dates;
+
+            if (comparisonChart) {
+                comparisonChart.destroy();
+            }
+
+            comparisonChart = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: labels,
+                    datasets: datasets
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                         x: {
+                            type: 'time',
+                            time: {
+                                unit: 'day',
+                                tooltipFormat: 'MMM dd, yyyy',
+                                displayFormats: {
+                                    day: 'MMM dd'
+                                }
+                            },
+                        },
+                        y: {
+                           beginAtZero: false,
+                           ticks: {
+                                callback: function(value) { return '$' + value; }
+                           }
+                        }
+                    },
+                    plugins: {
+                        tooltip: {
+                            mode: 'index',
+                            intersect: false,
+                        }
+                    }
+                }
+            });
+        }
+
+        function handleError(elementId, message) {
+            const feedbackElement = document.getElementById(elementId);
+            if(feedbackElement) {
+                feedbackElement.innerHTML = `<div class="error-message">${message}</div>`;
+            }
+            console.error(message);
+        }
+        
+        // --- Event Listeners ---
+        document.getElementById('run-comparison-btn').addEventListener('click', () => {
+            const selectedSymbols = Array.from(document.getElementById('symbol-selector').selectedOptions).map(opt => opt.value);
+            activeComparisonSymbols = selectedSymbols;
+            if (activeComparisonSymbols.length > 0) {
+                fetchComparisonData(activeComparisonSymbols.join(','), 'week');
+            } else {
+                handleError('advanced-feedback', 'Please select at least one symbol to compare.');
+            }
+        });
+
+        document.getElementById('update-db-btn').addEventListener('click', async () => {
+            const feedbackEl = document.getElementById('advanced-feedback');
+            feedbackEl.innerText = 'Updating database from real-time data...';
+            try {
+                const response = await fetch(`${API_BASE}/database/update-from-tracking`, { method: 'POST' });
+                const result = await response.json();
+                if (result.success) {
+                    feedbackEl.innerHTML = `<div style="color: green;">${result.message}</div>`;
+                } else {
+                    feedbackEl.innerHTML = `<div class="error-message">${result.message}</div>`;
+                }
+            } catch (error) {
+                handleError('advanced-feedback', `Error updating database: ${error.message}`);
+            }
+        });
+
+        // Time range buttons
+        const timeRangeButtons = document.querySelectorAll('.time-range-btn');
+        timeRangeButtons.forEach(button => {
+            button.addEventListener('click', () => {
+                // Set active period
+                activePeriod = button.dataset.period;
+                
+                // Update active button style
+                timeRangeButtons.forEach(btn => btn.classList.remove('active'));
+                button.classList.add('active');
+
+                // Re-fetch data for the main chart
+                fetchStockData(activeSymbol, activePeriod);
+            });
+        });
+
+        // Initialize with default data
+        fetchStockData(activeSymbol, activePeriod);
+        fetchComparisonData(activeComparisonSymbols.join(','), 'week'); // Default to 'week' for comparison chart
+        fetchServerStatus();
+    });
+
+    </script>
+</body>
+</html>
