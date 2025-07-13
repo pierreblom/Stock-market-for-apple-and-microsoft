@@ -1,0 +1,9 @@
+NVIDIA Stock Data Analysis Summary
+========================================
+Analysis date: 2025-07-13 06:54:51
+Data file: data_exports/NVDA_cleaned.csv
+Records analyzed: 6,657
+Date range: 1999-01-22 to 2025-07-10
+Current price: $164.10
+All-time high: $164.50
+All-time low: $0.03

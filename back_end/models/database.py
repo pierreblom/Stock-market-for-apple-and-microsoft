@@ -1,11 +1,36 @@
+"""
+Database operations for CSV-based stock data storage.
+"""
+
 import pandas as pd
 import logging
 from datetime import datetime
-from ..config import EXPORT_DIR
+from pathlib import Path
+from typing import Dict, List, Optional, Union, Any, Tuple
+from ..config import config
+
+# Type definitions
+StockRecord = Dict[str, Union[str, float, int]]
+DatabaseResult = Dict[str, Union[bool, str, int, List[StockRecord], None]]
+TrackingSummary = Dict[str, Union[str, float, int]]
 
 
-def save_to_database_csv(data, symbol, update_existing=True):
-    """Save/update stock data to persistent CSV database files"""
+def save_to_database_csv(
+    data: List[StockRecord], 
+    symbol: str, 
+    update_existing: bool = True
+) -> Optional[DatabaseResult]:
+    """
+    Save/update stock data to persistent CSV database files.
+    
+    Args:
+        data: List of stock records to save
+        symbol: Stock symbol for the database file
+        update_existing: Whether to update existing database or create new
+        
+    Returns:
+        Dictionary containing operation result, or None if no data provided
+    """
     try:
         if not data or len(data) == 0:
             return None
@@ -15,7 +40,7 @@ def save_to_database_csv(data, symbol, update_existing=True):
         
         # Create persistent database filename (no timestamps!)
         filename = f"{symbol}_database.csv"
-        filepath = EXPORT_DIR / filename
+        filepath = config.export_dir / filename
         
         if filepath.exists() and update_existing:
             try:
@@ -104,11 +129,19 @@ def save_to_database_csv(data, symbol, update_existing=True):
         }
 
 
-def load_from_database_csv(symbol):
-    """Load stock data from persistent CSV database"""
+def load_from_database_csv(symbol: str) -> DatabaseResult:
+    """
+    Load stock data from persistent CSV database.
+    
+    Args:
+        symbol: Stock symbol to load data for
+        
+    Returns:
+        Dictionary containing operation result and data
+    """
     try:
         filename = f"{symbol}_database.csv"
-        filepath = EXPORT_DIR / filename
+        filepath = config.export_dir / filename
         
         if not filepath.exists():
             return {
@@ -121,7 +154,7 @@ def load_from_database_csv(symbol):
         df = pd.read_csv(filepath)
         
         # Convert to records format
-        records = df.to_dict('records')
+        records: List[StockRecord] = df.to_dict('records')
         
         return {
             'success': True,
@@ -140,15 +173,18 @@ def load_from_database_csv(symbol):
         } 
 
 
-def update_database_from_tracking():
+def update_database_from_tracking() -> DatabaseResult:
     """
     Summarize intra-day tracking data into daily OHLCV records and
     update the persistent database files.
+    
+    Returns:
+        Dictionary containing operation result and updated symbols
     """
     try:
         # Read the consolidated tracking file
         tracking_filename = "price_tracking.csv"
-        tracking_filepath = EXPORT_DIR / tracking_filename
+        tracking_filepath = config.export_dir / tracking_filename
         
         if not tracking_filepath.exists():
             return {
@@ -173,10 +209,10 @@ def update_database_from_tracking():
         # Group by symbol and date
         grouped = df.groupby(['symbol', pd.Grouper(key='timestamp', freq='D')])
         
-        all_summaries = []
+        all_summaries: List[Tuple[str, TrackingSummary]] = []
         for (symbol, date), group in grouped:
             if not group.empty:
-                summary = {
+                summary: TrackingSummary = {
                     'date': date.strftime('%Y-%m-%d'),
                     'open': group['price'].iloc[0],
                     'high': group['price'].max(),
@@ -194,7 +230,7 @@ def update_database_from_tracking():
             }
 
         # Update database for each symbol
-        updated_symbols = {}
+        updated_symbols: Dict[str, Dict[str, Any]] = {}
         symbols_to_update = set(s for s, _ in all_summaries)
 
         for symbol in symbols_to_update:

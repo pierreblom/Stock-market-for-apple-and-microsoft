@@ -441,10 +441,11 @@
                     <div class="symbol-selector-container">
                         <label for="symbol-selector">Compare with:</label>
                         <select id="symbol-selector" class="symbol-selector" multiple>
+                            <option value="NVDA" selected>NVIDIA (NVDA)</option>
                             <option value="AAPL">Apple (AAPL)</option>
                             <option value="MSFT">Microsoft (MSFT)</option>
                             <option value="GOOGL">Google (GOOGL)</option>
-                            <option value="ASML.AS" selected>ASML (ASML.AS)</option>
+                            <option value="ASML.AS">ASML (ASML.AS)</option>
                             <option value="INGA.AS">ING Group (INGA.AS)</option>
                             <option value="HEIA.AS">Heineken (HEIA.AS)</option>
                             <option value="PHIA.AS">Philips (PHIA.AS)</option>
@@ -475,9 +476,9 @@
     document.addEventListener('DOMContentLoaded', () => {
 
         // State management
-        let activeSymbol = 'AAPL'; // Default symbol
+        let activeSymbol = 'NVDA'; // Default symbol
         let activePeriod = 'week'; // Default period
-        let activeComparisonSymbols = ['AAPL', 'ASML.AS']; // Default comparison
+        let activeComparisonSymbols = ['NVDA', 'ASML.AS']; // Default comparison
         let chart; // Global chart instance
         let comparisonChart; // Comparison chart instance
         const mainChartLoader = document.getElementById('main-chart-loader');

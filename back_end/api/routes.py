@@ -199,7 +199,7 @@ def get_stock_data(symbol):
 def get_comparison_data():
     """Get comparison data for multiple symbols"""
     try:
-        symbols_str = request.args.get('symbols', 'AAPL,MSFT')
+        symbols_str = request.args.get('symbols', 'NVDA,MSFT')
         symbols = [s.strip().upper() for s in symbols_str.split(',') if s.strip()]
         
         period = request.args.get('period', 'default')
@@ -760,7 +760,7 @@ def update_all_databases():
     """Update all database files with fresh data"""
     try:
         fetcher = MarketDataFetcher()
-        symbols = ['AAPL', 'MSFT', 'GOOGL', 'AMZN', 'TSLA']  # Add more as needed
+        symbols = ['NVDA', 'AAPL', 'MSFT', 'GOOGL', 'AMZN', 'TSLA']  # Add more as needed
         results = {}
         
         for symbol in symbols:

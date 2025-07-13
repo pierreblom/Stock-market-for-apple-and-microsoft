@@ -43,6 +43,7 @@ def generate_hourly_data_for_today(symbol):
             'LVMH.PA': {'base_price': 750, 'sector': 'luxury', 'beta': 0.9, 'volatility': 0.028},
             
             # Still support US stocks for comparison
+            'NVDA': {'base_price': 165, 'sector': 'tech', 'beta': 1.5, 'volatility': 0.035},
             'AAPL': {'base_price': 200, 'sector': 'tech', 'beta': 1.2, 'volatility': 0.025},
             'MSFT': {'base_price': 480, 'sector': 'tech', 'beta': 1.1, 'volatility': 0.022},
             'GOOGL': {'base_price': 2800, 'sector': 'tech', 'beta': 1.3, 'volatility': 0.028},
@@ -173,6 +174,7 @@ def generate_hourly_data_for_yesterday(symbol):
             'PHIA.AS': {'base_price': 25, 'sector': 'tech', 'beta': 1.0, 'volatility': 0.025},
             'SAP': {'base_price': 120, 'sector': 'tech', 'beta': 1.1, 'volatility': 0.022},
             'LVMH.PA': {'base_price': 750, 'sector': 'luxury', 'beta': 0.9, 'volatility': 0.028},
+            'NVDA': {'base_price': 165, 'sector': 'tech', 'beta': 1.5, 'volatility': 0.035},
             'AAPL': {'base_price': 200, 'sector': 'tech', 'beta': 1.2, 'volatility': 0.025},
             'MSFT': {'base_price': 480, 'sector': 'tech', 'beta': 1.1, 'volatility': 0.022},
             'GOOGL': {'base_price': 2800, 'sector': 'tech', 'beta': 1.3, 'volatility': 0.028},
