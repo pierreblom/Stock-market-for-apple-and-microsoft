@@ -388,6 +388,183 @@
             margin-bottom: 1rem;
         }
 
+        /* Technical Analysis Styles */
+        .ta-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 1.5rem;
+            margin-top: 1rem;
+        }
+
+        .ta-card {
+            background: var(--bg-primary);
+            padding: 1.5rem;
+            border-radius: var(--border-radius);
+            border: 1px solid var(--border-color);
+        }
+
+        .ta-card h4 {
+            font-size: var(--font-size-lg);
+            font-weight: 600;
+            margin-bottom: 1rem;
+            color: var(--text-primary);
+        }
+
+        .ta-value {
+            font-size: var(--font-size-2xl);
+            font-weight: 700;
+            margin-bottom: 0.5rem;
+        }
+
+        .ta-value.bullish {
+            color: var(--success-color);
+        }
+
+        .ta-value.bearish {
+            color: var(--danger-color);
+        }
+
+        .ta-value.neutral {
+            color: var(--warning-color);
+        }
+
+        .ta-description {
+            font-size: var(--font-size-sm);
+            color: var(--text-secondary);
+        }
+
+        /* Trading Signals Styles */
+        .signal-card {
+            background: var(--bg-primary);
+            padding: 2rem;
+            border-radius: var(--border-radius);
+            border: 1px solid var(--border-color);
+            text-align: center;
+            margin-bottom: 1.5rem;
+        }
+
+        .signal-main {
+            font-size: var(--font-size-3xl);
+            font-weight: 700;
+            margin-bottom: 1rem;
+        }
+
+        .signal-main.buy {
+            color: var(--success-color);
+        }
+
+        .signal-main.sell {
+            color: var(--danger-color);
+        }
+
+        .signal-main.hold {
+            color: var(--warning-color);
+        }
+
+        .signal-confidence {
+            font-size: var(--font-size-lg);
+            color: var(--text-secondary);
+            margin-bottom: 1.5rem;
+        }
+
+        .signal-reasons {
+            text-align: left;
+            background: var(--bg-secondary);
+            padding: 1rem;
+            border-radius: var(--border-radius);
+            margin-top: 1rem;
+        }
+
+        .signal-reasons h5 {
+            font-size: var(--font-size-base);
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+            color: var(--text-primary);
+        }
+
+        .signal-reasons ul {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+        }
+
+        .signal-reasons li {
+            padding: 0.25rem 0;
+            color: var(--text-secondary);
+            font-size: var(--font-size-sm);
+        }
+
+        .signal-reasons li:before {
+            content: "• ";
+            color: var(--primary-color);
+            font-weight: bold;
+        }
+
+        /* Price Predictions Styles */
+        .prediction-chart-container {
+            margin-top: 1rem;
+            height: 300px;
+        }
+
+        .prediction-metrics {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1rem;
+            margin-top: 1.5rem;
+        }
+
+        .metric-card {
+            background: var(--bg-primary);
+            padding: 1rem;
+            border-radius: var(--border-radius);
+            border: 1px solid var(--border-color);
+            text-align: center;
+        }
+
+        .metric-value {
+            font-size: var(--font-size-xl);
+            font-weight: 600;
+            color: var(--text-primary);
+        }
+
+        .metric-label {
+            font-size: var(--font-size-sm);
+            color: var(--text-secondary);
+            margin-top: 0.25rem;
+        }
+
+        .prediction-list {
+            margin-top: 1rem;
+            max-height: 200px;
+            overflow-y: auto;
+        }
+
+        .prediction-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0.75rem;
+            background: var(--bg-primary);
+            border-radius: var(--border-radius);
+            margin-bottom: 0.5rem;
+            border: 1px solid var(--border-color);
+        }
+
+        .prediction-date {
+            font-weight: 500;
+            color: var(--text-primary);
+        }
+
+        .prediction-price {
+            font-weight: 600;
+            color: var(--primary-color);
+        }
+
+        .prediction-confidence {
+            font-size: var(--font-size-sm);
+            color: var(--text-secondary);
+        }
+
     </style>
 </head>
 <body>
@@ -428,6 +605,58 @@
                     <div style="position: relative;">
                         <canvas id="stock-chart" class="main-chart"></canvas>
                         <div id="main-chart-loader" class="loading-overlay" style="display: none;"><div class="spinner"></div></div>
+                    </div>
+                </div>
+            </section>
+            
+            <!-- Technical Analysis Section -->
+            <section class="charts-section">
+                <div class="chart-container">
+                    <div class="chart-header">
+                        <h3>📊 Technical Analysis</h3>
+                        <div class="chart-controls">
+                            <button id="refresh-ta-btn" class="btn btn-secondary">Refresh Analysis</button>
+                        </div>
+                    </div>
+                    <div id="technical-analysis-content">
+                        <div class="loading-overlay" style="display: none;"><div class="spinner"></div></div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Trading Signals Section -->
+            <section class="charts-section">
+                <div class="chart-container">
+                    <div class="chart-header">
+                        <h3>🎯 Trading Signals</h3>
+                        <div class="chart-controls">
+                            <button id="refresh-signals-btn" class="btn btn-secondary">Refresh Signals</button>
+                        </div>
+                    </div>
+                    <div id="trading-signals-content">
+                        <div class="loading-overlay" style="display: none;"><div class="spinner"></div></div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Price Predictions Section -->
+            <section class="charts-section">
+                <div class="chart-container">
+                    <div class="chart-header">
+                        <h3>🔮 Price Predictions</h3>
+                        <div class="chart-controls">
+                            <select id="prediction-days" class="time-range-btn" style="background: white; border: 1px solid var(--border-color);">
+                                <option value="7">7 Days</option>
+                                <option value="14">14 Days</option>
+                                <option value="30" selected>30 Days</option>
+                                <option value="60">60 Days</option>
+                            </select>
+                            <button id="refresh-predictions-btn" class="btn btn-secondary">Refresh Predictions</button>
+                            <button id="retrain-model-btn" class="btn" style="background: var(--warning-color); border-color: var(--warning-color);">Retrain Model</button>
+                        </div>
+                    </div>
+                    <div id="price-predictions-content">
+                        <div class="loading-overlay" style="display: none;"><div class="spinner"></div></div>
                     </div>
                 </div>
             </section>
@@ -506,10 +735,10 @@
                 const data = await response.json();
                 
                 if (data.success) {
-                    updateMainStockCard(data.symbol, data.current);
-                    updateChart(data.symbol, data.dates, data.prices, data.granularity);
+                    updateMainStockCard(data.data.symbol, data.data.current);
+                    updateChart(data.data.symbol, data.data.dates, data.data.prices, data.data.granularity);
                 } else {
-                    handleError('main-chart-feedback', `Could not load stock data: ${data.errors.join(', ')}`);
+                    handleError('main-chart-feedback', `Could not load stock data: ${data.data.errors.join(', ')}`);
                 }
             } catch (error) {
                 handleError('main-chart-feedback', `Network error or timeout: ${error.message}`);
@@ -546,6 +775,89 @@
                 }
             } catch (error) {
                 console.warn('API health check failed.');
+            }
+        }
+
+        // New API functions for advanced features
+        async function fetchTechnicalAnalysis(symbol, period = 'default') {
+            const loader = document.querySelector('#technical-analysis-content .loading-overlay');
+            loader.style.display = 'flex';
+            try {
+                const response = await fetchWithTimeout(`${API_BASE}/stock/${symbol}/technical-analysis?period=${period}`);
+                if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+                const data = await response.json();
+                
+                if (data.success) {
+                    updateTechnicalAnalysis(data.data);
+                } else {
+                    handleError('technical-analysis-content', `Could not load technical analysis: ${data.message}`);
+                }
+            } catch (error) {
+                handleError('technical-analysis-content', `Network error: ${error.message}`);
+            } finally {
+                loader.style.display = 'none';
+            }
+        }
+
+        async function fetchTradingSignals(symbol, period = 'default') {
+            const loader = document.querySelector('#trading-signals-content .loading-overlay');
+            loader.style.display = 'flex';
+            try {
+                const response = await fetchWithTimeout(`${API_BASE}/stock/${symbol}/signals?period=${period}`);
+                if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+                const data = await response.json();
+                
+                if (data.success) {
+                    updateTradingSignals(data.data);
+                } else {
+                    handleError('trading-signals-content', `Could not load trading signals: ${data.message}`);
+                }
+            } catch (error) {
+                handleError('trading-signals-content', `Network error: ${error.message}`);
+            } finally {
+                loader.style.display = 'none';
+            }
+        }
+
+        async function fetchPricePredictions(symbol, daysAhead = 30, retrain = false) {
+            const loader = document.querySelector('#price-predictions-content .loading-overlay');
+            loader.style.display = 'flex';
+            try {
+                const response = await fetchWithTimeout(`${API_BASE}/stock/${symbol}/prediction?days=${daysAhead}&retrain=${retrain}`);
+                if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+                const data = await response.json();
+                
+                if (data.success) {
+                    updatePricePredictions(data.data);
+                } else {
+                    handleError('price-predictions-content', `Could not load predictions: ${data.message}`);
+                }
+            } catch (error) {
+                handleError('price-predictions-content', `Network error: ${error.message}`);
+            } finally {
+                loader.style.display = 'none';
+            }
+        }
+
+        async function retrainModel(symbol, daysAhead = 30) {
+            const loader = document.querySelector('#price-predictions-content .loading-overlay');
+            loader.style.display = 'flex';
+            try {
+                const response = await fetchWithTimeout(`${API_BASE}/stock/${symbol}/model/retrain?days=${daysAhead}`, {
+                    method: 'POST'
+                });
+                if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+                const data = await response.json();
+                
+                if (data.success) {
+                    updatePricePredictions(data.data);
+                } else {
+                    handleError('price-predictions-content', `Could not retrain model: ${data.message}`);
+                }
+            } catch (error) {
+                handleError('price-predictions-content', `Network error: ${error.message}`);
+            } finally {
+                loader.style.display = 'none';
             }
         }
 
@@ -723,6 +1035,230 @@
             });
         }
 
+        // New UI update functions for advanced features
+        function updateTechnicalAnalysis(data) {
+            const container = document.getElementById('technical-analysis-content');
+            
+            if (!data || !data.indicators) {
+                container.innerHTML = '<div class="error-message">No technical analysis data available.</div>';
+                return;
+            }
+
+            const indicators = data.indicators;
+            const latest = data.latest_values;
+            
+            container.innerHTML = `
+                <div class="ta-grid">
+                    <div class="ta-card">
+                        <h4>📈 SMA (20-day)</h4>
+                        <div class="ta-value">$${latest.sma_20?.toFixed(2) || 'N/A'}</div>
+                        <div class="ta-description">Simple Moving Average - Trend direction</div>
+                    </div>
+                    <div class="ta-card">
+                        <h4>📊 SMA (50-day)</h4>
+                        <div class="ta-value">$${latest.sma_50?.toFixed(2) || 'N/A'}</div>
+                        <div class="ta-description">Medium-term trend indicator</div>
+                    </div>
+                    <div class="ta-card">
+                        <h4>📉 SMA (200-day)</h4>
+                        <div class="ta-value">$${latest.sma_200?.toFixed(2) || 'N/A'}</div>
+                        <div class="ta-description">Long-term trend indicator</div>
+                    </div>
+                    <div class="ta-card">
+                        <h4>🔄 RSI (14)</h4>
+                        <div class="ta-value ${getRSIClass(latest.rsi_14)}">${latest.rsi_14?.toFixed(1) || 'N/A'}</div>
+                        <div class="ta-description">Relative Strength Index - Overbought/Oversold</div>
+                    </div>
+                    <div class="ta-card">
+                        <h4>📊 MACD Line</h4>
+                        <div class="ta-value">${latest.macd_line?.toFixed(3) || 'N/A'}</div>
+                        <div class="ta-description">MACD Line - Momentum indicator</div>
+                    </div>
+                    <div class="ta-card">
+                        <h4>📈 MACD Signal</h4>
+                        <div class="ta-value">${latest.macd_signal?.toFixed(3) || 'N/A'}</div>
+                        <div class="ta-description">MACD Signal Line</div>
+                    </div>
+                </div>
+                <div style="margin-top: 1rem; font-size: 0.875rem; color: var(--text-secondary);">
+                    Analysis based on ${data.data_points} data points | Last updated: ${data.analysis_date}
+                </div>
+            `;
+        }
+
+        function updateTradingSignals(data) {
+            const container = document.getElementById('trading-signals-content');
+            
+            if (!data || !data.signal) {
+                container.innerHTML = '<div class="error-message">No trading signals available.</div>';
+                return;
+            }
+
+            const signalClass = data.signal.toLowerCase();
+            const signalIcon = getSignalIcon(data.signal);
+            
+            container.innerHTML = `
+                <div class="signal-card">
+                    <div class="signal-main ${signalClass}">
+                        ${signalIcon} ${data.signal}
+                    </div>
+                    <div class="signal-confidence">
+                        Confidence: ${data.confidence}%
+                    </div>
+                    <div class="signal-reasons">
+                        <h5>Signal Reasons:</h5>
+                        <ul>
+                            ${data.reasons.map(reason => `<li>${reason}</li>`).join('')}
+                        </ul>
+                    </div>
+                </div>
+                <div style="margin-top: 1rem; font-size: 0.875rem; color: var(--text-secondary);">
+                    Analysis based on ${data.data_points} data points | Last updated: ${data.analysis_date}
+                </div>
+            `;
+        }
+
+        function updatePricePredictions(data) {
+            const container = document.getElementById('price-predictions-content');
+            
+            if (!data || !data.predictions) {
+                container.innerHTML = '<div class="error-message">No price predictions available.</div>';
+                return;
+            }
+
+            const predictions = data.predictions;
+            const metrics = data.metrics;
+            const modelInfo = data.model_info;
+            
+            // Create prediction chart
+            const chartContainer = document.createElement('div');
+            chartContainer.className = 'prediction-chart-container';
+            chartContainer.innerHTML = '<canvas id="prediction-chart"></canvas>';
+            
+            container.innerHTML = `
+                <div class="prediction-metrics">
+                    <div class="metric-card">
+                        <div class="metric-value">${modelInfo.days_ahead}</div>
+                        <div class="metric-label">Days Predicted</div>
+                    </div>
+                    <div class="metric-card">
+                        <div class="metric-value">${modelInfo.data_points_used}</div>
+                        <div class="metric-label">Data Points Used</div>
+                    </div>
+                    <div class="metric-card">
+                        <div class="metric-value">${metrics.mae?.toFixed(2) || 'N/A'}</div>
+                        <div class="metric-label">Mean Absolute Error</div>
+                    </div>
+                    <div class="metric-card">
+                        <div class="metric-value">${metrics.direction_accuracy?.toFixed(1) || 'N/A'}%</div>
+                        <div class="metric-label">Direction Accuracy</div>
+                    </div>
+                </div>
+                <div class="prediction-list">
+                    <h4 style="margin-bottom: 1rem;">Price Predictions:</h4>
+                    ${predictions.map(pred => `
+                        <div class="prediction-item">
+                            <div class="prediction-date">${pred.date}</div>
+                            <div class="prediction-price">$${pred.price.toFixed(2)}</div>
+                            <div class="prediction-confidence">${pred.confidence}% confidence</div>
+                        </div>
+                    `).join('')}
+                </div>
+                <div style="margin-top: 1rem; font-size: 0.875rem; color: var(--text-secondary);">
+                    Model trained: ${modelInfo.trained_date} | ${metrics.note || ''}
+                </div>
+            `;
+            
+            container.appendChild(chartContainer);
+            
+            // Create prediction chart
+            createPredictionChart(predictions);
+        }
+
+        // Helper functions
+        function getRSIClass(rsi) {
+            if (!rsi) return 'neutral';
+            if (rsi > 70) return 'bearish'; // Overbought
+            if (rsi < 30) return 'bullish'; // Oversold
+            return 'neutral';
+        }
+
+        function getSignalIcon(signal) {
+            switch(signal.toUpperCase()) {
+                case 'BUY': return '🟢';
+                case 'SELL': return '🔴';
+                case 'HOLD': return '🟡';
+                default: return '⚪';
+            }
+        }
+
+        function createPredictionChart(predictions) {
+            const ctx = document.getElementById('prediction-chart')?.getContext('2d');
+            if (!ctx) return;
+            
+            const labels = predictions.map(p => p.date);
+            const prices = predictions.map(p => p.price);
+            const confidences = predictions.map(p => p.confidence);
+            
+            new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        label: 'Predicted Price',
+                        data: prices,
+                        borderColor: 'rgba(139, 92, 246, 1)',
+                        backgroundColor: 'rgba(139, 92, 246, 0.1)',
+                        borderWidth: 3,
+                        pointRadius: 4,
+                        pointBackgroundColor: 'rgba(139, 92, 246, 1)',
+                        tension: 0.1,
+                        fill: true
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        x: {
+                            type: 'time',
+                            time: {
+                                unit: 'day',
+                                tooltipFormat: 'MMM dd, yyyy'
+                            },
+                            grid: {
+                                display: false
+                            }
+                        },
+                        y: {
+                            beginAtZero: false,
+                            grid: {
+                                color: 'rgba(226, 232, 240, 1)'
+                            },
+                            ticks: {
+                                callback: function(value) {
+                                    return '$' + value.toFixed(2);
+                                }
+                            }
+                        }
+                    },
+                    plugins: {
+                        legend: {
+                            display: false
+                        },
+                        tooltip: {
+                            callbacks: {
+                                label: function(context) {
+                                    const index = context.dataIndex;
+                                    return `Price: $${context.parsed.y.toFixed(2)} (${confidences[index]}% confidence)`;
+                                }
+                            }
+                        }
+                    }
+                }
+            });
+        }
+
         function handleError(elementId, message) {
             const feedbackElement = document.getElementById(elementId);
             if(feedbackElement) {
@@ -774,9 +1310,36 @@
             });
         });
 
+        // New event listeners for advanced features
+        document.getElementById('refresh-ta-btn').addEventListener('click', () => {
+            fetchTechnicalAnalysis(activeSymbol, activePeriod);
+        });
+
+        document.getElementById('refresh-signals-btn').addEventListener('click', () => {
+            fetchTradingSignals(activeSymbol, activePeriod);
+        });
+
+        document.getElementById('refresh-predictions-btn').addEventListener('click', () => {
+            const daysAhead = parseInt(document.getElementById('prediction-days').value);
+            fetchPricePredictions(activeSymbol, daysAhead, false);
+        });
+
+        document.getElementById('retrain-model-btn').addEventListener('click', () => {
+            const daysAhead = parseInt(document.getElementById('prediction-days').value);
+            retrainModel(activeSymbol, daysAhead);
+        });
+
+        document.getElementById('prediction-days').addEventListener('change', () => {
+            const daysAhead = parseInt(document.getElementById('prediction-days').value);
+            fetchPricePredictions(activeSymbol, daysAhead, false);
+        });
+
         // Initialize with default data
         fetchStockData(activeSymbol, activePeriod);
         fetchComparisonData(activeComparisonSymbols.join(','), 'week'); // Default to 'week' for comparison chart
+        fetchTechnicalAnalysis(activeSymbol, activePeriod);
+        fetchTradingSignals(activeSymbol, activePeriod);
+        fetchPricePredictions(activeSymbol, 30, false);
         fetchServerStatus();
     });
 

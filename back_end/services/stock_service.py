@@ -15,6 +15,8 @@ from ..models.data_generator import (
     get_yesterdays_real_data
 )
 from ..services.tracking import save_price_tracking_data
+from ..services.technical_analysis_service import TechnicalAnalysisService
+from ..services.prediction_service import PredictionService
 from ..utils.exceptions import DataFetchException, DatabaseException
 from ..utils.logger import get_logger, log_data_operation, log_error
 from ..config import config
@@ -25,6 +27,8 @@ class StockService:
     
     def __init__(self):
         self.fetcher = MarketDataFetcher()
+        self.technical_analysis = TechnicalAnalysisService()
+        self.prediction_service = PredictionService()
         self.logger = get_logger(__name__)
     
     def get_stock_data(self, symbol: str, period: str = 'default') -> Dict:
@@ -354,4 +358,195 @@ class StockService:
             'records': len(dates),
             'message': f'Loaded from database: {db_result["filename"]}',
             'filename': db_result['filename']
-        } 
+        }
+    
+    def get_technical_analysis(self, symbol: str, period: str = 'default') -> Dict:
+        """Get technical analysis for a specific symbol and period."""
+        symbol = symbol.upper()
+        
+        self.logger.info(f"Getting technical analysis for {symbol} (period: {period})")
+        
+        try:
+            # Get historical data for analysis
+            db_load_result = load_from_database_csv(symbol)
+            
+            if not db_load_result['success'] or not db_load_result['data']:
+                return {
+                    'success': False,
+                    'symbol': symbol,
+                    'message': f'No historical data available for {symbol}',
+                    'indicators': {},
+                    'signals': {
+                        'overall_signal': 'HOLD',
+                        'confidence': 0,
+                        'reasons': ['No data available for analysis']
+                    }
+                }
+            
+            # Process database records
+            all_records = self._process_database_records(db_load_result['data'])
+            records_to_process = self._filter_records_by_period(all_records, period)
+            
+            if not records_to_process:
+                return {
+                    'success': False,
+                    'symbol': symbol,
+                    'message': f'No data available for period: {period}',
+                    'indicators': {},
+                    'signals': {
+                        'overall_signal': 'HOLD',
+                        'confidence': 0,
+                        'reasons': [f'No data for period: {period}']
+                    }
+                }
+            
+            # Perform technical analysis
+            analysis_result = self.technical_analysis.get_technical_analysis(symbol, records_to_process)
+            
+            # Add period information
+            analysis_result['period'] = period
+            analysis_result['data_points'] = len(records_to_process)
+            
+            return analysis_result
+            
+        except Exception as e:
+            log_error(self.logger, e, f"get_technical_analysis for {symbol}")
+            return {
+                'success': False,
+                'symbol': symbol,
+                'message': f'Technical analysis failed: {str(e)}',
+                'indicators': {},
+                'signals': {
+                    'overall_signal': 'HOLD',
+                    'confidence': 0,
+                    'reasons': [f'Analysis error: {str(e)}']
+                }
+            }
+    
+    def get_signals(self, symbol: str, period: str = 'default') -> Dict:
+        """Get trading signals for a specific symbol."""
+        symbol = symbol.upper()
+        
+        self.logger.info(f"Getting trading signals for {symbol} (period: {period})")
+        
+        try:
+            # Get technical analysis
+            analysis = self.get_technical_analysis(symbol, period)
+            
+            if not analysis['success']:
+                return analysis
+            
+            # Extract signals and latest values
+            signals = analysis['signals']
+            latest_values = analysis['latest_values']
+            
+            # Format response for signals endpoint
+            return {
+                'success': True,
+                'symbol': symbol,
+                'period': period,
+                'signal': signals['overall_signal'],
+                'confidence': signals['confidence'],
+                'reasons': signals['reasons'],
+                'latest_indicators': latest_values,
+                'analysis_date': analysis['analysis_date'],
+                'data_points': analysis['data_points']
+            }
+            
+        except Exception as e:
+            log_error(self.logger, e, f"get_signals for {symbol}")
+            return {
+                'success': False,
+                'symbol': symbol,
+                'message': f'Signal generation failed: {str(e)}',
+                'signal': 'HOLD',
+                'confidence': 0,
+                'reasons': [f'Error: {str(e)}']
+            }
+    
+    def get_price_prediction(self, symbol: str, days_ahead: int = 30, retrain: bool = False) -> Dict:
+        """Get price predictions for a specific symbol."""
+        symbol = symbol.upper()
+        
+        self.logger.info(f"Getting price predictions for {symbol} ({days_ahead} days ahead)")
+        
+        try:
+            # Get historical data for prediction
+            db_load_result = load_from_database_csv(symbol)
+            
+            if not db_load_result['success'] or not db_load_result['data']:
+                return {
+                    'success': False,
+                    'symbol': symbol,
+                    'message': f'No historical data available for {symbol}',
+                    'predictions': [],
+                    'metrics': {}
+                }
+            
+            # Process database records
+            all_records = self._process_database_records(db_load_result['data'])
+            
+            if not all_records:
+                return {
+                    'success': False,
+                    'symbol': symbol,
+                    'message': f'No valid data records for {symbol}',
+                    'predictions': [],
+                    'metrics': {}
+                }
+            
+            # Generate predictions
+            result = self.prediction_service.generate_predictions(
+                symbol, all_records, days_ahead, retrain
+            )
+            
+            return result
+            
+        except Exception as e:
+            log_error(self.logger, e, f"get_price_prediction for {symbol}")
+            return {
+                'success': False,
+                'symbol': symbol,
+                'message': f'Price prediction failed: {str(e)}',
+                'predictions': [],
+                'metrics': {}
+            }
+    
+    def get_model_performance(self, symbol: str) -> Dict:
+        """Get model performance metrics for a symbol."""
+        symbol = symbol.upper()
+        
+        self.logger.info(f"Getting model performance for {symbol}")
+        
+        try:
+            # Try to load existing model to get metrics
+            model = self.prediction_service.load_model(symbol)
+            
+            if model is None:
+                return {
+                    'success': False,
+                    'symbol': symbol,
+                    'message': f'No trained model found for {symbol}',
+                    'metrics': {}
+                }
+            
+            # For now, return basic model info
+            # In a full implementation, you'd store and retrieve actual metrics
+            return {
+                'success': True,
+                'symbol': symbol,
+                'model_status': 'Trained',
+                'last_updated': datetime.now().strftime('%Y-%m-%d %H:%M:%S'),
+                'metrics': {
+                    'note': 'Model metrics available after training/retraining'
+                }
+            }
+            
+        except Exception as e:
+            log_error(self.logger, e, f"get_model_performance for {symbol}")
+            return {
+                'success': False,
+                'symbol': symbol,
+                'message': f'Failed to get model performance: {str(e)}',
+                'metrics': {}
+            } 

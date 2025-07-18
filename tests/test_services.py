@@ -30,13 +30,13 @@ class TestStockService:
         }
         self.stock_service.fetcher = mock_fetcher_instance
         
-        # Mock database load
+        # Mock database load with complete OHLCV data
         with patch('back_end.services.stock_service.load_from_database_csv') as mock_load:
             mock_load.return_value = {
                 'success': True,
                 'data': [
-                    {'date': '2023-01-01', 'close': 150.0, 'volume': 1000},
-                    {'date': '2023-01-02', 'close': 155.0, 'volume': 1100}
+                    {'date': '2023-01-01', 'open': 148.0, 'high': 152.0, 'low': 147.0, 'close': 150.0, 'volume': 1000},
+                    {'date': '2023-01-02', 'open': 150.0, 'high': 157.0, 'low': 149.0, 'close': 155.0, 'volume': 1100}
                 ]
             }
             
@@ -78,7 +78,9 @@ class TestStockService:
                 'success': True,
                 'records': 2,
                 'total_records': 2,
-                'message': 'Database updated successfully'
+                'message': 'Database updated successfully',
+                'updated': True,
+                'filename': 'AAPL_database.csv'
             }
             
             result = self.stock_service.save_to_database('AAPL')
@@ -186,7 +188,8 @@ class TestDatabaseService:
         
         mock_dir.glob.return_value = [mock_file1, mock_file2]
         mock_dir.exists.return_value = True
-        mock_export_dir.__truediv__ = lambda x, y: mock_dir
+        mock_export_dir.exists.return_value = True
+        mock_export_dir.glob.return_value = [mock_file1, mock_file2]
         
         result = self.db_service.list_csv_files()
         
@@ -198,22 +201,25 @@ class TestDatabaseService:
     def test_list_database_files_success(self, mock_export_dir):
         """Test successful database file listing."""
         # Mock the export directory
-        mock_dir = Mock()
         mock_file = Mock()
         mock_file.name = 'AAPL_database.csv'
         mock_file.stem = 'AAPL_database'
         mock_file.stat.return_value = Mock(st_size=1024, st_mtime=1234567890)
         
-        mock_dir.glob.return_value = [mock_file]
-        mock_export_dir.__truediv__ = lambda x, y: mock_dir
+        mock_export_dir.glob.return_value = [mock_file]
         
         # Mock pandas read_csv
         with patch('back_end.services.database_service.pd.read_csv') as mock_read_csv:
             mock_df = Mock()
             mock_df.__len__ = lambda x: 100
             mock_df.columns = ['date', 'close', 'volume']
-            mock_df['date'].min.return_value = '2023-01-01'
-            mock_df['date'].max.return_value = '2023-12-31'
+            
+            # Mock the date column properly
+            mock_date_series = Mock()
+            mock_date_series.min.return_value = '2023-01-01'
+            mock_date_series.max.return_value = '2023-12-31'
+            mock_df.__getitem__ = lambda x, key: mock_date_series if key == 'date' else Mock()
+            
             mock_read_csv.return_value = mock_df
             
             result = self.db_service.list_database_files()
@@ -240,22 +246,21 @@ class TestAutomationService:
         """Set up test fixtures."""
         self.automation_service = AutomationService()
     
-    @patch('back_end.services.automation_service.config')
-    def test_get_automation_status(self, mock_config):
+    @patch.multiple('back_end.services.automation_service',
+                   FINNHUB_API_KEY='d1n3591r01qlvnp5a50gd1n3591r01qlvnp5a510',
+                   AUTO_DOWNLOAD_SYMBOLS=['NVDA'],
+                   DAILY_UPDATE_MINUTE=0,
+                   DAILY_UPDATE_HOUR=19,
+                   AUTO_DOWNLOAD_ENABLED=True)
+    def test_get_automation_status(self):
         """Test automation status retrieval."""
-        # Mock configuration
-        mock_config.scheduling.auto_download_enabled = True
-        mock_config.scheduling.daily_update_hour = 18
-        mock_config.scheduling.daily_update_minute = 0
-        mock_config.scheduling.auto_download_symbols = ['AAPL', 'MSFT']
-        mock_config.api.finnhub_api_key = 'test_key'
-        
         result = self.automation_service.get_automation_status()
         
         assert result['success'] is True
         assert result['config']['enabled'] is True
-        assert result['config']['hour'] == 18
+        assert result['config']['hour'] == 19
         assert result['config']['minute'] == 0
+        assert result['config']['symbols'] == ['NVDA']
         assert result['config']['api_key_configured'] is True
     
     @patch('back_end.services.automation_service.automated_daily_download')

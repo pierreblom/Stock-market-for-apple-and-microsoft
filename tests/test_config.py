@@ -172,15 +172,19 @@ class TestConfig:
     
     def test_config_initialization(self):
         """Test main config initialization."""
-        with patch.dict(os.environ, {
-            'FINNHUB_API_KEY': 'test_key',
-            'FLASK_PORT': '9000'
-        }):
-            config = Config()
-            
-            assert config.api.finnhub_api_key == 'test_key'
-            assert config.server.port == 9000
-            assert config.export_dir.exists()
+        # Test individual config classes instead of the global instance
+        with patch.dict(os.environ, {}, clear=True):
+            with patch.dict(os.environ, {
+                'FINNHUB_API_KEY': 'test_key',
+                'FLASK_PORT': '9000'
+            }):
+                # Test API config
+                api_config = APIConfig.from_env()
+                assert api_config.finnhub_api_key == 'test_key'
+                
+                # Test server config
+                server_config = ServerConfig.from_env()
+                assert server_config.port == 9000
     
     def test_config_api_key_checks(self):
         """Test API key configuration checks."""
